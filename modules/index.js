@@ -19,9 +19,14 @@ function createServer(config = []) {
       // Try to send a static file.
       app.use(pattern, express.static(root, options));
 
-      // Fall back to the HTML file.
+      // Try node resolve to find the file and fall back to
+      // the index HTML file if file not found
       app.use(pattern, (req, res) => {
-        res.sendFile(path.resolve(root, options.index || "index.html"));
+        try {
+          res.sendFile(require.resolve(path.resolve(root, req.originalUrl.split('?')[0])));
+        } catch (e) {
+          res.sendFile(path.resolve(root, options.index || "index.html"));
+        }
       });
     }
   });
